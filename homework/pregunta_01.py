@@ -71,3 +71,79 @@ def pregunta_01():
 
 
     """
+
+import zipfile
+import os
+import pandas as pd
+
+def pregunta_01():
+
+    # Rutas
+    zip_path = "files/input.zip"
+    extraer = "input/"
+
+    # Crea la carpeta destino si no existe
+    os.makedirs(extraer, exist_ok=True) # os.makedirs(): Función que crea carpetas
+
+    # Descomprimir el archivo ZIP
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extraer)
+
+    # Detectar automáticamente la ruta base correcta
+    inner_path = os.path.join(extraer, "input")
+    base_path = inner_path if os.path.exists(inner_path) else extraer
+
+
+    data = []
+
+    # Recorre train y test
+    for dataset in os.listdir(base_path):
+        dataset_path = os.path.join(base_path, dataset)
+        if not os.path.isdir(dataset_path):
+            continue
+
+    # Recorre positive, negative, neutral
+        for sentiment in os.listdir(dataset_path):
+            sentiment_path = os.path.join(dataset_path, sentiment)
+            if not os.path.isdir(sentiment_path):
+                continue
+
+    # Recorre todos los archivos .txt dentro de cada carpeta
+            for filename in os.listdir(sentiment_path):
+                file_path = os.path.join(sentiment_path, filename)
+                if not os.path.isfile(file_path):
+                    continue
+
+    # Leer el contenido del archivo 
+                with open(file_path, 'r', encoding="utf-8") as file:
+                    phrase = file.read().strip()
+
+    # Agregar a la lista como diccionario
+                data.append({
+                    "dataset": dataset,
+                    "phrase": phrase,
+                    "target": sentiment
+                })
+
+    # Crear DataFrame con todos los datos
+    dataframe = pd.DataFrame(data)
+
+    # Generar los dataset test y train
+    test_dataset = dataframe[dataframe["dataset"] == "test"].reset_index(drop=True)
+    train_dataset = dataframe[dataframe["dataset"] == "train"].reset_index(drop=True)
+
+    # Eliminar la columna dataset
+    test_dataset = test_dataset.drop("dataset", axis=1)
+    train_dataset = train_dataset.drop("dataset", axis=1)
+
+    # Crear carpeta de salida
+    rutacsv = "files/output/"
+    os.makedirs(rutacsv, exist_ok=True)
+
+    # Guardar CSV
+    train_dataset.to_csv(os.path.join(rutacsv, "train_dataset.csv"), index=False, encoding="utf-8")
+    test_dataset.to_csv(os.path.join(rutacsv, "test_dataset.csv"), index=False, encoding="utf-8")
+
+
+if __name__ == "__main__":
+    pregunta_01()
